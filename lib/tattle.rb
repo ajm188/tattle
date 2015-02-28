@@ -2,6 +2,7 @@ require 'tattle/version'
 
 require 'tattle/closure'
 require 'tattle/parser'
+require 'tattle/error'
 
 module Tattle
   def self.analyze(filename)
