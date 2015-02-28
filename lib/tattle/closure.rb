@@ -1,6 +1,6 @@
 module Tattle
   class Closure
-    def self.compute(ast, current_closure)
+    def self.compute(ast, current_closure = Closure.new)
       if ast.module?
         current_closure.add(ast.module_name,
                             Closure.compute(ast.module_body,
@@ -11,22 +11,46 @@ module Tattle
                             Closure.compute(ast.class_body,
                                             Closure.new({},
                                                         current_closure)))
-      elsif ast.method_def?
-        current_closure.add(ast.method_name,
-                            Closure.compute(ast.method_body,
-                                            Closure.new({},
-                                            current_closure)))
-      elsif ast.block? # ast.proc? ast.lambda?
-        # ???
-      elsif ast.local_assignment?
+      elsif ast.defs?
+        current_closure.add(ast.defs_name,
+                            Closure.compute(ast.defs_body,
+                                            Closure.new(bind_args(ast.defs_args,
+                                                                  current_closure),
+                                                        current_closure)))
+      elsif ast.def?
+        current_closure.add(ast.def_name,
+                            Closure.compute(ast.def_body,
+                                            Closure.new(bind_args(ast.def_args,
+                                                                  current_closure),
+                                                        current_closure)))
+      elsif ast.begin?
+        ast.children.each { |child| current_closure.merge Closure.compute(child, current_closure) }
+      elsif ast.block?
+        current_closure.add(ast,
+                            Closure.compute(ast.block_body,
+                                            Closure.new(bind_args(ast.block_args,
+                                                                  current_closure),
+                                                        current_closure)))
+      elsif ast.local_var_assignment?
         current_closure.add(ast.assignment_left_side)
       elsif ast.instance_var_assignment?
-        current_closure.parent.add(ast.assignment_left_side)
+        current_closure.add(ast.assignment_left_side)
+        if current_closure.parent
+          current_closure.parent.add(ast.assignment_left_side.to_s[1..-1].to_sym)
+        end
       elsif ast.class_var_assignment?
-        current_closure.parent.parent.add(ast.assignment_left_hand_side)
+        current_closure.add(ast.assignment_left_side)
+        if current_closure.parent
+          current_closure.parent.add(ast.assignment_left_side.to_s[1..-1].to_sym)
+          if current_closure.parent.parent
+            current_closure.parent.parent.add(ast.assignment_left_side.to_s[2..-1].to_sym)
+          end
+        end
       end 
       current_closure
     end
+
+    attr_reader :parent
 
     def initialize(closure = {}, parent = nil)
       @closure, @parent = closure, parent
@@ -46,8 +70,25 @@ module Tattle
       end
     end
 
-    def merge(closure_hash)
-      @closure.merge! closure_hash
+    def merge(closure_obj)
+      case closure_obj
+      when Closure
+        @closure.merge! closure_obj.closure_hash
+      when Hash
+        @closure.merge! closure_obj
+      end
+    end
+
+    protected
+
+    def closure_hash
+      @closure
+    end
+
+    private
+
+    def self.bind_args(args, current_closure)
+      args.reduce({}) { |h, arg| h.merge({arg => true}) }.merge({self: current_closure})
     end
   end
 end
