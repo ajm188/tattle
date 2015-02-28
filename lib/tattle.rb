@@ -12,6 +12,6 @@ module Tattle
   private
   
   def self.to_ast(text)
-    Tattle::Parser.parse file_text
+    Tattle::Parser.parse text
   end
 end
