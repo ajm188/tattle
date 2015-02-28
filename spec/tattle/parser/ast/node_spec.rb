@@ -59,6 +59,24 @@ RSpec.describe ::Parser::AST::Node do
     end
   end
 
+  describe '#block?' do
+    context 'when the AST node is a block' do
+      let(:block1) { Tattle::Parser.parse('a.each { |e| e }') }
+      let(:block2) { Tattle::Parser.parse('->(e) { e }') }
+
+      it 'returns true' do
+        expect(block1.block?).to be true
+        expect(block2.block?).to be true
+      end
+    end
+
+    context 'when the AST node is not a block' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('2 + 2').block?).to be false
+      end
+    end
+  end
+
   describe '#begin?' do
     let(:begin_node) { Tattle::Parser.parse('def foo; end; def bar; end') }
     let(:class_node) { Tattle::Parser.parse('class MyClass; end') }
@@ -72,6 +90,63 @@ RSpec.describe ::Parser::AST::Node do
     context 'when the AST node is not type :begin' do
       it 'returns false' do
         expect(class_node.begin?).to be false
+      end
+    end
+  end
+
+  describe '#lvasgn?, #local_var_assignment?' do
+    let(:lvasgn_node) { Tattle::Parser.parse('a = b') }
+    let(:other_node) { Tattle::Parser.parse('@a = 5') }
+
+    context 'when the AST node is a local assignment' do
+      it 'returns true' do
+        expect(lvasgn_node.lvasgn?).to be true
+        expect(lvasgn_node.local_var_assignment?).to be true
+      end
+    end
+
+    context 'when the AST node is not a local assignment' do
+      it 'should return false' do
+        expect(other_node.lvasgn?).to be false
+        expect(other_node.local_var_assignment?).to be false
+      end
+    end
+  end
+
+  describe '#ivasgn?, #instance_var_assignment?' do
+    let(:ivasgn_node) { Tattle::Parser.parse('@a = 5') }
+    let(:other_node) { Tattle::Parser.parse('@@a = 6') }
+
+    context 'when the AST node is an instance variable assignment' do
+      it 'returns true' do
+        expect(ivasgn_node.ivasgn?).to be true
+        expect(ivasgn_node.instance_var_assignment?).to be true
+      end
+    end
+
+    context 'when the AST node is not an instance variable assignment' do
+      it 'returns false' do
+        expect(other_node.ivasgn?).to be false
+        expect(other_node.instance_var_assignment?).to be false
+      end
+    end
+  end
+
+  describe '#cvasgn?, #class_instance_var_assignment?' do
+    let(:cvasgn_node) { Tattle::Parser.parse('@@a = 6') }
+    let(:other_node) { Tattle::Parser.parse('a = b') }
+
+    context 'when the AST node is a class variable assignment' do
+      it 'returns true' do
+        expect(cvasgn_node.cvasgn?).to be true
+        expect(cvasgn_node.class_var_assignment?).to be true
+      end
+    end
+
+    context 'when the AST node is not a class variable assignment' do
+      it 'returns false' do
+        expect(other_node.cvasgn?).to be false
+        expect(other_node.class_var_assignment?).to be false
       end
     end
   end
@@ -140,6 +215,42 @@ RSpec.describe ::Parser::AST::Node do
 
     it 'returns a list of argument symbols' do
       expect(def_node.def_args).to eq [:a, :b]
+    end
+  end
+
+  describe '#block_method' do
+    let(:block) { Tattle::Parser.parse('a.each { |e| e }') }
+    let(:method) { Tattle::Parser.parse('a.each') }
+
+    it 'returns the method the block is being passed to' do
+      expect(block.block_method).to eq method
+    end
+  end
+
+  describe '#block_args' do
+    let(:block) { Tattle::Parser.parse('a.each { |e| e }') }
+
+    it 'returns the variables the block expects' do
+      expect(block.block_args).to eq [:e]
+    end
+  end
+
+  describe '#assignment_left_side' do
+    let(:assignment1) { Tattle::Parser.parse('a = b') }
+    let(:assignment2) { Tattle::Parser.parse('@a = b') }
+
+    it 'returns the left hand of the assignment as a symbol' do
+      expect(assignment1.assignment_left_side).to eq :a
+      expect(assignment2.assignment_left_side).to eq :@a
+    end
+  end
+
+  describe '#assignment_right_side' do
+    let(:assignment) { Tattle::Parser.parse('a = 5') }
+    let(:five) { Tattle::Parser.parse('5') }
+
+    it 'returns the right hand side of an assignment' do
+      expect(assignment.assignment_right_side).to eq five
     end
   end
 end
