@@ -1,5 +1,8 @@
 module Tattle
   class Closure
+    def self.compute(ast)
+    end
+
     def initialize(closure = {}, parent = nil)
       @closure, @parent = closure, parent
     end
