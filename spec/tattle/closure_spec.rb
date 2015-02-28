@@ -9,13 +9,23 @@ end
 
 RSpec.describe Tattle::Closure do
   describe '#add' do
-    before(:each) { @closure = Tattle::Closure.new({a: true}) }
+    before(:each) { @closure = Tattle::Closure.new({a: true, c: false}) }
 
     context 'when the symbol is in the closure' do
-      it 'does not change the underlying hash' do
-        hash = @closure.closure.clone
-        @closure.add :a
-        expect(@closure.closure).to eq hash
+      context 'and the value is the same' do
+        it 'does not change the underlying hash' do
+          hash = @closure.closure.clone
+          @closure.add :a, true
+          expect(@closure.closure).to eq hash
+        end
+      end
+
+      context 'and the value is not the same' do
+        it 'changes the underlying hash' do
+          hash = @closure.closure.clone
+          @closure.add :c, true
+          expect(@closure.closure).to_not eq hash
+        end
       end
     end
 
@@ -85,9 +95,9 @@ RSpec.describe Tattle::Closure do
         expect(@closure.closure.has_key?(:c)).to be true
       end
 
-      it 'does not overwrite the values of the common keys' do
+      it 'does overwrites the values of the common keys' do
         @closure.merge(new_hash)
-        expect(@closure.closure[:a]).to be true
+        expect(@closure.closure[:a]).to be false
       end
     end
   end

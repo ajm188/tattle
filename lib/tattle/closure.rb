@@ -16,7 +16,6 @@ module Tattle
     end
 
     def add(symbol, value = true)
-      return if @closure.has_key? symbol
       @closure[symbol] = value
     end
 
@@ -31,7 +30,7 @@ module Tattle
     end
 
     def merge(closure_hash)
-      @closure = closure_hash.merge(@closure)
+      @closure.merge! closure_hash
     end
   end
 end
