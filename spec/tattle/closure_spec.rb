@@ -58,4 +58,37 @@ RSpec.describe Tattle::Closure do
       end
     end
   end
+
+  describe '#merge' do
+    before(:each) { @closure = Tattle::Closure.new({a: true, b: true}) }
+
+    context 'when no keys are shared between the hashes' do
+      let(:new_hash) { {c: true, d: true} }
+
+      it 'updates the underlying hash' do
+        hash = @closure.closure.clone
+        @closure.merge(new_hash)
+        expect(@closure.closure).to_not eq hash
+      end
+
+      it 'adds all the symbols to the underlying hash' do
+        @closure.merge(new_hash)
+        new_hash.keys.each { |k| expect(@closure.closure.has_key?(k)).to be true }
+      end
+    end
+
+    context 'when some of the keys are shared between the hashes' do
+      let(:new_hash) { {a: false, c: true} }
+
+      it 'adds the missing keys to the underlying hash' do
+        @closure.merge(new_hash)
+        expect(@closure.closure.has_key?(:c)).to be true
+      end
+
+      it 'does not overwrite the values of the common keys' do
+        @closure.merge(new_hash)
+        expect(@closure.closure[:a]).to be true
+      end
+    end
+  end
 end

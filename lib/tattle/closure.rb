@@ -18,5 +18,9 @@ module Tattle
         false
       end
     end
+
+    def merge(closure_hash)
+      @closure = closure_hash.merge(@closure)
+    end
   end
 end
