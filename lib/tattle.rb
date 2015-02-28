@@ -2,11 +2,24 @@ require 'tattle/version'
 
 require 'tattle/closure'
 require 'tattle/parser'
+require 'tattle/analyzer'
 
 module Tattle
   def self.analyze(filename)
-    file_text = File.read(filename)
-    global_closure = Tattle::Closure.compute to_ast(file_text)
+    errors.clear
+
+    ast = to_ast(File.read(filename))
+    Tattle::Analyzer.analyze ast, Tattle::Closure.compute(ast)
+
+    if errors.any?
+      # Print the errors
+    else
+      # Print success
+    end
+  end
+
+  def self.errors
+    @errors ||= []
   end
 
   private
