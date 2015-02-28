@@ -1,6 +1,14 @@
 module Tattle
   class Closure
-    def self.compute(ast)
+    def self.compute(ast, current_closure)
+      if ast.module?
+        current_closure[ast.module_name] =
+          Closure.compute(ast.module_body,
+                          Closure.new({},
+                                      current_closure))
+      else
+        current_closure
+      end
     end
 
     def initialize(closure = {}, parent = nil)
