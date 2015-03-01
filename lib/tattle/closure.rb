@@ -5,12 +5,14 @@ module Tattle
         current_closure.add(ast.module_name,
                             Closure.compute(ast.module_body,
                                             Closure.new({},
-                                                        current_closure)))
+                                                        current_closure))
+                                   .merge(current_closure.closure_hash[ast.module_name] || {}))
       elsif ast.class?
         current_closure.add(ast.class_name,
                             Closure.compute(ast.class_body,
                                             Closure.new({},
-                                                        current_closure)))
+                                                        current_closure))
+                                   .merge(current_closure.closure_hash[ast.class_name] || {}))
       elsif ast.defs?
         current_closure.add(ast.defs_name,
                             Closure.compute(ast.defs_body,
