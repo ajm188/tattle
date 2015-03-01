@@ -270,6 +270,52 @@ RSpec.describe ::Parser::AST::Node do
     end
   end
 
+  describe '#ivar?, #instance_variable?' do
+    let(:ivar) { Tattle::Parser.parse('@foo') }
+    let(:cvar) { Tattle::Parser.parse('@@foo') }
+    let(:other) { Tattle::Parser.parse('foo') }
+
+    context 'when the AST node is an instance variable' do
+      it 'returns true' do
+        expect(ivar.ivar?).to be true
+        expect(ivar.instance_variable?).to be true
+      end
+    end
+
+    context 'when the AST node is not an instance variable' do
+      it 'returns false' do
+        expect(cvar.ivar?).to be false
+        expect(cvar.instance_variable?).to be false
+
+        expect(other.ivar?).to be false
+        expect(other.instance_variable?).to be false
+      end
+    end
+  end
+
+  describe '#cvar?, #class_variable?' do
+    let(:ivar) { Tattle::Parser.parse('@foo') }
+    let(:cvar) { Tattle::Parser.parse('@@foo') }
+    let(:other) { Tattle::Parser.parse('foo') }
+
+    context 'when the AST node is a class variable' do
+      it 'returns true' do
+        expect(cvar.cvar?).to be true
+        expect(cvar.class_variable?).to be true
+      end
+    end
+
+    context 'when the AST node is not a class variable' do
+      it 'returns false' do
+        expect(ivar.cvar?).to be false
+        expect(ivar.class_variable?).to be false
+
+        expect(other.cvar?).to be false
+        expect(other.class_variable?).to be false
+      end
+    end
+  end
+
   describe '#dstr, #interpolated_str?' do
     let(:dstr) { Tattle::Parser.parse('"abc#{foo}"') }
     let(:str) { Tattle::Parser.parse('abc') }
@@ -328,7 +374,7 @@ RSpec.describe ::Parser::AST::Node do
   end
 
   describe '#literal?' do
-    context 'when the AST node is one of nil, int, float, symbol, true, false or string' do
+    context 'when the AST node is one of nil, int, float, symbol, true, false, string, instance variable or class variable' do
       let(:nil_node) { Tattle::Parser.parse('nil') }
       let(:int) { Tattle::Parser.parse('1') }
       let(:float) { Tattle::Parser.parse('1.0') }
@@ -336,6 +382,8 @@ RSpec.describe ::Parser::AST::Node do
       let(:true_node) { Tattle::Parser.parse('true') }
       let(:false_node) { Tattle::Parser.parse('false') }
       let(:str) { Tattle::Parser.parse('"foo"') }
+      let(:ivar) { Tattle::Parser.parse('@foo') }
+      let(:cvar) { Tattle::Parser.parse('@@foo') }
 
       it 'returns true' do
         expect(nil_node.literal?).to be true
@@ -345,6 +393,8 @@ RSpec.describe ::Parser::AST::Node do
         expect(true_node.literal?).to be true
         expect(false_node.literal?).to be true
         expect(str.literal?).to be true
+        expect(ivar.literal?).to be true
+        expect(cvar.literal?).to be true
       end
     end
 
@@ -360,6 +410,32 @@ RSpec.describe ::Parser::AST::Node do
         expect(Tattle::Parser.parse('a.foo').literal?).to be false
         expect(Tattle::Parser.parse('class MyClass; end').literal?).to be false
       end
+    end
+  end
+
+  describe '#array_elements' do
+    let(:array) { Tattle::Parser.parse('[1, foo, "c"]') }
+    let(:elements) { ['1', 'foo', '"c"'].map { |str| Tattle::Parser.parse(str) } }
+
+    it 'returns the list of element nodes in the array' do
+      expect(array.array_elements).to eq elements
+    end
+  end
+
+  describe '#hash_pairs' do
+    # This set of specs does not pass, because parsing just the sub-part
+    # of the pairs causes syntax errors (by itself, it's not valid ruby).
+    # Therefore, these examples serve to illustrate the AST of the hash only.
+    before { skip }
+
+    let(:hash) { Tattle::Parser.parse('{a: true, "b" => foo}') }
+    let(:pair1) { Tattle::Parser.parse(':a, true') }
+    let(:pair2) { Tattle::Parser.parse('"b", foo') }
+
+    it 'returns the list of key-value pairs in the hash' do
+      hp = hash.hash_pairs
+      expect(hp.first.children).to eq pair1
+      expect(hp.last.children).to eq pair2
     end
   end
 
@@ -475,6 +551,16 @@ RSpec.describe ::Parser::AST::Node do
 
     it 'returns a list of argument symbols' do
       expect(def_node.def_args).to eq [:a, :b]
+    end
+  end
+
+  describe '#method_args' do
+    let(:defs_node) { Tattle::Parser.parse('def self.foo(a,b); end') }
+    let(:def_node) { Tattle::Parser.parse('def foo(a,b); end') }
+
+    it 'returns the arguments of a defs or a def' do
+      expect(defs_node.method_args).to eq [:a, :b]
+      expect(def_node.method_args).to eq [:a, :b]
     end
   end
 
