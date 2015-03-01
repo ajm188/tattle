@@ -151,6 +151,266 @@ RSpec.describe ::Parser::AST::Node do
     end
   end
 
+  describe '#send?' do
+    let(:send1) { Tattle::Parser.parse('a') }
+    let(:send2) { Tattle::Parser.parse('a.foo') }
+    let(:other) { Tattle::Parser.parse(':a') }
+
+    context 'when the AST node has type send' do
+      it 'returns true' do
+        expect(send1.send?).to be true
+        expect(send2.send?).to be true
+      end
+    end
+
+    context 'when the AST node is not type send' do
+      it 'returns false' do
+        expect(other.send?).to be false
+      end
+    end
+  end
+
+  describe '#nil?' do
+    context 'when the AST node is a nil' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('nil').nil?).to be true
+      end
+    end
+
+    context 'when the AST node is not a nil' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('false').nil?).to be false
+      end
+    end
+  end
+
+  describe '#int?' do
+    context 'when the AST node is an int' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('1').int?).to be true
+      end
+    end
+
+    context 'when the AST node is not an int' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('1.0').int?).to be false
+      end
+    end
+  end
+
+  describe '#float?' do
+    context 'when the AST node is a float' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('1.0').float?).to be true
+      end
+    end
+
+    context 'when the AST node is not a float' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('1').float?).to be false
+      end
+    end
+  end
+
+  describe '#sym?' do
+    context 'when the AST node is a symbol' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse(':a').sym?).to be true
+      end
+    end
+
+    context 'when the AST node is not a symbol' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('1.0').sym?).to be false
+      end
+    end
+  end
+
+  describe '#true?' do
+    context 'when the AST node is a true literal' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('true').true?).to be true
+      end
+    end
+
+    context 'when the AST node is not a true literal' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('false').true?).to be false
+        expect(Tattle::Parser.parse('a = b').true?).to be false
+      end
+    end
+  end
+
+  describe '#false?' do
+    context 'when the AST node is a false literal' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('false').false?).to be true
+      end
+    end
+
+    context 'when the AST node is not a false literal' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('nil').false?).to be false
+      end
+    end
+  end
+
+  describe '#str?' do
+    context 'when the AST node is a string literal' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('"abc"').str?).to be true
+      end
+    end
+
+    context 'when the AST node is not a string literal' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('1').str?).to be false
+        expect(Tattle::Parser.parse('"abc#{foo}"').str?).to be false
+      end
+    end
+  end
+
+  describe '#dstr, #interpolated_str?' do
+    let(:dstr) { Tattle::Parser.parse('"abc#{foo}"') }
+    let(:str) { Tattle::Parser.parse('abc') }
+    let(:other) { Tattle::Parser.parse('nil') }
+
+    context 'when the AST node is an interpolated string' do
+      it 'returns true' do
+        expect(dstr.dstr?).to be true
+        expect(dstr.interpolated_str?).to be true
+      end
+    end
+
+    context 'when the AST node is not an interpolated string' do
+      it 'returns false' do
+        expect(str.dstr?).to be false
+        expect(str.interpolated_str?).to be false
+
+        expect(other.dstr?).to be false
+        expect(other.interpolated_str?).to be false
+      end
+    end
+  end
+
+  describe '#array?' do
+    context 'when the AST node is an inline array' do
+      it 'returns true' do
+        expect(Tattle::Parser.parse('[1, a, true]').array?).to be true
+      end
+    end
+
+    context 'when the ASt node is not an inline array' do
+      let(:hash) { Tattle::Parser.parse('{a: true, b: false}') }
+
+      it 'returns false' do
+        expect(hash.array?).to be false
+        expect(Tattle::Parser.parse('1 + 2').array?).to be false
+      end
+    end
+  end
+
+  describe '#hash?' do
+    context 'when the AST node is an inline hash' do
+      let(:hash) { Tattle::Parser.parse('{a: true, b: false}') }
+
+      it 'returns true' do
+        expect(hash.hash?).to be true
+      end
+    end
+
+    context 'when the AST node is not an inline hash' do
+      it 'returns false' do
+        expect(Tattle::Parser.parse('[1, nil, false, "hi"]').hash?).to be false
+        expect(Tattle::Parser.parse('foo.bar').hash?).to be false
+      end
+    end
+  end
+
+  describe '#literal?' do
+    context 'when the AST node is one of nil, int, float, symbol, true, false or string' do
+      let(:nil_node) { Tattle::Parser.parse('nil') }
+      let(:int) { Tattle::Parser.parse('1') }
+      let(:float) { Tattle::Parser.parse('1.0') }
+      let(:symbol) { Tattle::Parser.parse(':foo') }
+      let(:true_node) { Tattle::Parser.parse('true') }
+      let(:false_node) { Tattle::Parser.parse('false') }
+      let(:str) { Tattle::Parser.parse('"foo"') }
+
+      it 'returns true' do
+        expect(nil_node.literal?).to be true
+        expect(int.literal?).to be true
+        expect(float.literal?).to be true
+        expect(symbol.literal?).to be true
+        expect(true_node.literal?).to be true
+        expect(false_node.literal?).to be true
+        expect(str.literal?).to be true
+      end
+    end
+
+    context 'when the AST node is anything else' do
+      let(:dstr) { Tattle::Parser.parse('"abc#{foo}"') }
+      let(:array) { Tattle::Parser.parse('[1, 2, 3]') }
+      let(:hash) { Tattle::Parser.parse('{a: true, b: true}') }
+
+      it 'returns false' do
+        expect(dstr.literal?).to be false
+        expect(array.literal?).to be false
+        expect(hash.literal?).to be false
+        expect(Tattle::Parser.parse('a.foo').literal?).to be false
+        expect(Tattle::Parser.parse('class MyClass; end').literal?).to be false
+      end
+    end
+  end
+
+  describe '#send_receiver' do
+    let(:send1) { Tattle::Parser.parse('a.foo') }
+    let(:receiver1) { Tattle::Parser.parse('a') }
+    
+    let(:send2) { Tattle::Parser.parse('foo') }
+    let(:receiver2) { nil }
+
+    it 'should return the node which receives the message' do
+      expect(send1.send_receiver).to eq receiver1
+      expect(send2.send_receiver).to eq receiver2
+    end
+  end
+
+  describe '#send_message' do
+    let(:send1) { Tattle::Parser.parse('a.foo') }
+    let(:message1) { :foo }
+
+    let(:send2) { Tattle::Parser.parse('a.b.foo') }
+
+    it 'returns the message being sent to the receiver' do
+      expect(send1.send_message).to eq message1
+      expect(send2.send_message).to eq message1
+    end
+  end
+
+  describe '#send_args' do
+    context 'when the message has no arguments' do
+      let(:send) { Tattle::Parser.parse('a.b') }
+
+      it 'returns the empty array' do
+        expect(send.send_args.empty?).to be true
+      end
+    end
+
+    context 'when the message has arguments' do
+      let(:send1) { Tattle::Parser.parse('a.b(c)') }
+      let(:args1) { [Tattle::Parser.parse('c')] }
+
+      let(:send2) { Tattle::Parser.parse('a.b(c, d, e)') }
+      let(:args2) { %w(c d e).map { |e| Tattle::Parser.parse(e) } }
+
+      it 'returns an array of the arguments sent with the message' do
+        expect(send1.send_args).to eq args1
+        expect(send2.send_args).to eq args2
+      end
+    end
+  end
+
   describe '#module_body' do
     let(:module_node) { Tattle::Parser.parse('module MyModule; def foo; end; end') }
     let(:module_body) { Tattle::Parser.parse('def foo; end') }

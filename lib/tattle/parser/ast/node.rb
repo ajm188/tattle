@@ -10,7 +10,10 @@ module Parser
         end
       end
 
-      node_types = closures + [:begin, :lvasgn, :ivasgn, :cvasgn]
+      node_types = closures +
+        [:begin, :lvasgn, :ivasgn, :cvasgn, :send] + # programming constructs
+        [:nil, :int, :float, :sym, :true, :false, :str] + # simple literals
+        [:dstr, :array, :hash] # complex literals (can't determine if literal without checking contents against the closure)
       node_types.each do |sym|
         define_method "#{sym}?" do
           type == sym
@@ -20,6 +23,24 @@ module Parser
       alias :local_var_assignment? :lvasgn?
       alias :instance_var_assignment? :ivasgn?
       alias :class_var_assignment? :cvasgn?
+
+      alias :interpolated_str? :dstr?
+
+      def literal?
+        nil? || int? || float? || sym? || true? || false? || str?
+      end
+
+      def send_receiver
+        children.first
+      end
+
+      def send_message
+        children[1]
+      end
+
+      def send_args
+        children[2..-1]
+      end
 
       def module_name
         children.first.children.last
