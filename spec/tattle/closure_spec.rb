@@ -1,12 +1,5 @@
 require 'spec_helper'
 
-# Expose the attributes so we can test them
-module Tattle
-  class Closure
-    attr_reader :closure, :parent
-  end
-end
-
 RSpec.describe Tattle::Closure do
   describe '#add' do
     before(:each) { @closure = Tattle::Closure.new({a: true, c: false}) }

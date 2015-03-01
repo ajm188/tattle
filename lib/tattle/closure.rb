@@ -14,30 +14,18 @@ module Tattle
                                                         current_closure))
                                    .merge(current_closure.closure_hash[ast.class_name] || {}))
       elsif ast.defs?
-        current_closure.add(ast.defs_name,
-                            Closure.compute(ast.defs_body,
-                                            Closure.new(bind_args(ast.defs_args,
-                                                                  current_closure),
-                                                        current_closure)))
+        current_closure.add(ast.defs_name, ast)
       elsif ast.def?
-        current_closure.add(ast.def_name,
-                            Closure.compute(ast.def_body,
-                                            Closure.new(bind_args(ast.def_args,
-                                                                  current_closure),
-                                                        current_closure)))
+        current_closure.add(ast.def_name, ast)
       elsif ast.block?
-        current_closure.add(ast,
-                            Closure.compute(ast.block_body,
-                                            Closure.new(bind_args(ast.block_args,
-                                                                  current_closure),
-                                                        current_closure)))
+        current_closure.add(ast, ast)
       elsif ast.begin?
         ast.children.each { |child| current_closure.merge Closure.compute(child, current_closure) }
       end 
       current_closure
     end
 
-    attr_reader :parent
+    attr_reader :closure, :parent
 
     def initialize(closure = {}, parent = nil)
       @closure, @parent = closure, parent
@@ -66,14 +54,9 @@ module Tattle
       end
     end
 
-    protected
-
-    def closure_hash
-      @closure
-    end
-
     private
-
+    
+    # don't think I need this anymore
     def self.bind_args(args, current_closure)
       args.reduce({}) { |h, arg| h.merge({arg => true}) }.merge({self: current_closure})
     end
