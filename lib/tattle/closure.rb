@@ -31,21 +31,6 @@ module Tattle
                                             Closure.new(bind_args(ast.block_args,
                                                                   current_closure),
                                                         current_closure)))
-      elsif ast.local_var_assignment?
-        current_closure.add(ast.assignment_left_side)
-      elsif ast.instance_var_assignment?
-        current_closure.add(ast.assignment_left_side)
-        if current_closure.parent
-          current_closure.parent.add(ast.assignment_left_side.to_s[1..-1].to_sym)
-        end
-      elsif ast.class_var_assignment?
-        current_closure.add(ast.assignment_left_side)
-        if current_closure.parent
-          current_closure.parent.add(ast.assignment_left_side.to_s[1..-1].to_sym)
-          if current_closure.parent.parent
-            current_closure.parent.parent.add(ast.assignment_left_side.to_s[2..-1].to_sym)
-          end
-        end
       end 
       current_closure
     end
