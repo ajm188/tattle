@@ -36,12 +36,16 @@ module Tattle
     end
 
     def include?(symbol)
+      !!lookup(symbol)
+    end
+
+    def lookup(symbol)
       if @closure.has_key? symbol
-        true
+        @closure[symbol]
       elsif @parent
-        @parent.include? symbol
+        @parent.lookup(symbol)
       else
-        false
+        nil
       end
     end
 
@@ -52,13 +56,6 @@ module Tattle
       when Hash
         @closure.merge! closure_obj
       end
-    end
-
-    private
-    
-    # don't think I need this anymore
-    def self.bind_args(args, current_closure)
-      args.reduce({}) { |h, arg| h.merge({arg => true}) }.merge({self: current_closure})
     end
   end
 end
