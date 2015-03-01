@@ -6,16 +6,8 @@ require 'tattle/analyzer'
 
 module Tattle
   def self.analyze(filename)
-    errors.clear
-
     ast = to_ast(File.read(filename))
     Tattle::Analyzer.analyze ast, Tattle::Closure.compute(ast)
-
-    if errors.any?
-      # Print the errors
-    else
-      # Print success
-    end
   end
 
   def self.errors
