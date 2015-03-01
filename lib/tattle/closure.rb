@@ -23,14 +23,14 @@ module Tattle
                                             Closure.new(bind_args(ast.def_args,
                                                                   current_closure),
                                                         current_closure)))
-      elsif ast.begin?
-        ast.children.each { |child| current_closure.merge Closure.compute(child, current_closure) }
       elsif ast.block?
         current_closure.add(ast,
                             Closure.compute(ast.block_body,
                                             Closure.new(bind_args(ast.block_args,
                                                                   current_closure),
                                                         current_closure)))
+      elsif ast.begin?
+        ast.children.each { |child| current_closure.merge Closure.compute(child, current_closure) }
       end 
       current_closure
     end
