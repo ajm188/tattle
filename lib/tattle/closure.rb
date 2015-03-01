@@ -52,7 +52,7 @@ module Tattle
     def merge(closure_obj)
       case closure_obj
       when Closure
-        @closure.merge! closure_obj.closure_hash
+        @closure.merge! closure_obj.closure
       when Hash
         @closure.merge! closure_obj
       end
