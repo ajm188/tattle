@@ -62,6 +62,37 @@ RSpec.describe Tattle::Closure do
     end
   end
 
+  describe '#lookup' do
+    let(:parent) { Tattle::Closure.new({a: "foo"}) }
+    let(:closure) { Tattle::Closure.new({b: 5}, parent) }
+
+    context 'when the symbol is in the closure' do
+      it 'returns the value the symbol maps to' do
+        expect(closure.lookup :b).to eq 5
+      end
+    end
+
+    context 'when the symbol is not in the closure' do
+      context 'when the closure has a parent that includes the symbol' do
+        it 'returns the value the symbol maps to' do
+          expect(closure.lookup :a).to eq "foo"
+        end
+      end
+
+      context 'when the closure has a parent, but the symbol is not included' do
+        it 'returns nil' do
+          expect(closure.lookup :c).to be nil
+        end
+      end
+
+      context 'when the closure does not have a parent' do
+        it 'returns nil' do
+          expect(parent.lookup :c).to be nil
+        end
+      end
+    end
+  end
+
   describe '#merge' do
     before(:each) { @closure = Tattle::Closure.new({a: true, b: true}) }
 
