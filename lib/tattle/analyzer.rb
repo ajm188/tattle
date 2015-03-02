@@ -15,6 +15,8 @@ module Tattle
         analyze(ast.block_body, Tattle::Closure.new(bind_args(ast.block_args), closure))
       elsif ast.begin?
         ast.children.each { |child| analyze(child, closure) }
+      elsif ast.if?
+        ([ast.if_condition] + ast.if_branches).each { |if_node| analyze(if_node, closure) }
       elsif ast.send?
         analyze_send(ast, closure)
       elsif ast.local_var_assignment?

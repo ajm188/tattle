@@ -21,6 +21,8 @@ module Tattle
         current_closure.add(ast, ast)
       elsif ast.begin?
         ast.children.each { |child| current_closure.merge Closure.compute(child, current_closure) }
+      elsif ast.if?
+        ast.if_branches.each { |branch| current_closure.merge Closure.compute(branch, current_closure) }
       end 
       current_closure
     end
