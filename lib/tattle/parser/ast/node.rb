@@ -11,7 +11,7 @@ module Parser
       end
 
       node_types = closures +
-        [:begin, :lvasgn, :ivasgn, :cvasgn, :send] + # programming constructs
+        [:begin, :lvasgn, :ivasgn, :cvasgn, :send, :if] + # programming constructs
         [:nil, :int, :float, :sym, :true, :false, :str] + # simple literals
         [:ivar, :cvar] + # things that aren't really literals, but act enough like them in ruby
         [:dstr, :array, :hash] # complex literals (can't determine if literal without checking contents against the closure)
@@ -41,6 +41,22 @@ module Parser
 
       def hash_pairs
         children
+      end
+
+      def if_condition
+        children.first
+      end
+
+      def if_true_branch
+        children[1]
+      end
+
+      def if_false_branch
+        children.last
+      end
+
+      def if_branches
+        [if_true_branch, if_false_branch].compact # remove nils
       end
 
       def send_receiver

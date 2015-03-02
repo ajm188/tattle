@@ -170,6 +170,29 @@ RSpec.describe ::Parser::AST::Node do
     end
   end
 
+  describe '#if?' do
+    let(:if1) { Tattle::Parser.parse('if a; b; end') }
+    let(:if2) { Tattle::Parser.parse('if a; b; else; c; end') }
+    let(:if3) { Tattle::Parser.parse('if a; ; elsif b; c; else; d; end') }
+    let(:if4) { Tattle::Parser.parse('b if a') }
+    let(:other) { Tattle::Parser.parse('while a; b; end') }
+
+    context 'when the AST node is an if construct' do
+      it 'returns true' do
+        expect(if1.if?).to be true
+        expect(if2.if?).to be true
+        expect(if3.if?).to be true
+        expect(if4.if?).to be true
+      end
+    end
+
+    context 'when the AST node is not an if construct' do
+      it 'returns false' do
+        expect(other.if?).to be false
+      end
+    end
+  end
+
   describe '#nil?' do
     context 'when the AST node is a nil' do
       it 'returns true' do
@@ -436,6 +459,94 @@ RSpec.describe ::Parser::AST::Node do
       hp = hash.hash_pairs
       expect(hp.first.children).to eq pair1
       expect(hp.last.children).to eq pair2
+    end
+  end
+
+  describe '#if_condition' do
+    let(:if1) { Tattle::Parser.parse('if true; b; end') }
+    let(:cond1) { Tattle::Parser.parse('true') }
+
+    let(:if2) { Tattle::Parser.parse('if a == b; c; end') }
+    let(:cond2) { Tattle::Parser.parse('a == b') }
+
+    it 'returns the condition of the if construct' do
+      expect(if1.if_condition).to eq cond1
+      expect(if2.if_condition).to eq cond2
+    end
+  end
+
+  describe '#if_true_branch' do
+    let(:if1) { Tattle::Parser.parse('if true; b; end') }
+    let(:true_branch1) { Tattle::Parser.parse('b') }
+
+    let(:if2) { Tattle::Parser.parse('if true; a = b; b += 1; end') }
+    let(:true_branch2) { Tattle::Parser.parse('a = b; b += 1') }
+
+    let(:if3) { Tattle::Parser.parse('if true; ; else; b; end') }
+
+    it 'returns the true branch of the if construct' do
+      expect(if1.if_true_branch).to eq true_branch1
+      expect(if2.if_true_branch).to eq true_branch2
+    end
+
+    context 'when the if construct has no true branch' do
+      it 'returns nil' do
+        expect(if3.if_true_branch).to be nil
+      end
+    end
+  end
+
+  describe '#if_false_branch' do
+    let(:if1) { Tattle::Parser.parse('if true; a; else; b; end') }
+    let(:false_branch1) { Tattle::Parser.parse('b') }
+
+    let(:if2) { Tattle::Parser.parse('if true; a; elsif b; c; end') }
+    let(:false_branch2) { Tattle::Parser.parse('if b; c; end') }
+
+    let(:if3) { Tattle::Parser.parse('if true; a; end') }
+
+    it 'returns the false branch of the if construct' do
+      expect(if1.if_false_branch).to eq false_branch1
+      expect(if2.if_false_branch).to eq false_branch2
+    end
+
+    context 'when the if construct has no false branch' do
+      it 'returns nil' do
+        expect(if3.if_false_branch).to be nil
+      end
+    end
+  end
+
+  describe '#if_branches' do
+    let(:if_node) { Tattle::Parser.parse('if true; a; else; b; end') }
+    let(:branches) { %w(a b).map { |e| Tattle::Parser.parse e } }
+
+    it 'returns the branches of the if construct' do
+      expect(if_node.if_branches).to eq branches
+    end
+
+    context 'when there is no true branch' do
+      let(:if_node) { Tattle::Parser.parse('if true; else; b; end') }
+
+      it 'returns an array of just the false branch' do
+        expect(if_node.if_branches).to eq [if_node.if_false_branch]
+      end
+    end
+
+    context 'when there is no false branch' do
+      let(:if_node) { Tattle::Parser.parse('if true; a; end') }
+
+      it 'returns an array of just the true branch' do
+        expect(if_node.if_branches).to eq [if_node.if_true_branch]
+      end
+    end
+
+    context 'when there are no branches' do
+      let(:if_node) { Tattle::Parser.parse('if true; end') }
+
+      it 'returns an empty array' do
+        expect(if_node.if_branches.empty?).to be true
+      end
     end
   end
 
