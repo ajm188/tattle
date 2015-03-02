@@ -1,0 +1,19 @@
+#!/usr/bin/env ruby
+
+require 'tattle'
+
+def usage
+end
+
+if ARGV.empty?
+  usage and exit(1)
+end
+
+Tattle.errors.clear
+Tattle.analyze(ARGV.first)
+
+if Tattle.errors.any?
+  Tattle.errors.each { |e| puts e; puts '' }
+else
+  puts "Nothing to tattle!"
+end
