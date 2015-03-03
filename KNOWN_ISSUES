@@ -1,0 +1,6 @@
+- does not handle control flow structures: unless, while, until, for, etc
+- does not handle multiple inheritance via mixins (include/extend)
+- does not handle require/require_relative
+- does not correctly check arity of functions with optional arguments
+- does not handle multiple assignment lines (a, b = 1, 2)
+- built-in functions and objects need to be brought in to scope (example: it can't find puts yet)

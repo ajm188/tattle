@@ -26,9 +26,11 @@ Using Tattle is as simple as:
 
 ## State of the Project
 
-This project is still in its very early stages (I started it 2 days ago). It currently only handles straight-line code as well as
-module, class and method definitions. I am working to add more functionality as quickly as possible. If you encounter a bug with
-tattle, check if an issue exists for your bug and open one if no issue exists.
+This project is still in its very early stages. It currently only handles straight-line code,
+conditionals and module, class and method definitions. I am working to add more functionality as quickly as possible.
+If you encounter a bug with tattle, first consult [this file](KNOW_ISSUES). If it's in there, I am aware of it and I'm
+working on it (probably right now). If it's not there, check the open issues on the repo, and create a new one if no
+issue exists for your bug.
 
 ## Development
 
