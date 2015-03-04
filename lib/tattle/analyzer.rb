@@ -17,6 +17,8 @@ module Tattle
         ast.children.each { |child| analyze(child, closure) }
       elsif ast.if?
         ([ast.if_condition] + ast.if_branches).each { |if_node| analyze(if_node, closure) }
+      elsif ast.while?
+        [ast.while_condition, ast.while_body].each { |node| analyze(node, closure) }
       elsif ast.send?
         analyze_send(ast, closure)
       elsif ast.local_var_assignment?

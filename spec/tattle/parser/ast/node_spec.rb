@@ -77,6 +77,24 @@ RSpec.describe ::Parser::AST::Node do
     end
   end
 
+  describe '#while?' do
+    context 'when the AST node is a while loop' do
+      let(:while1) { Tattle::Parser.parse('while true; a; end') }
+
+      it 'returns true' do
+        expect(while1.while?).to be true
+      end
+    end
+
+    context 'when the AST node is not a while loop' do
+      let(:other) { Tattle::Parser.parse('loop do; foo; end') }
+
+      it 'returns false' do
+        expect(other.while?).to be false
+      end
+    end
+  end
+
   describe '#begin?' do
     let(:begin_node) { Tattle::Parser.parse('def foo; end; def bar; end') }
     let(:class_node) { Tattle::Parser.parse('class MyClass; end') }
@@ -462,6 +480,15 @@ RSpec.describe ::Parser::AST::Node do
     end
   end
 
+  describe '#while_condition' do
+    let(:while_node) { Tattle::Parser.parse('while true; a; end') }
+    let(:condition_node) { Tattle::Parser.parse('true') }
+
+    it 'returns the condition of the while statement' do
+      expect(while_node.while_condition).to eq condition_node
+    end
+  end
+
   describe '#if_condition' do
     let(:if1) { Tattle::Parser.parse('if true; b; end') }
     let(:cond1) { Tattle::Parser.parse('true') }
@@ -612,7 +639,7 @@ RSpec.describe ::Parser::AST::Node do
 
     # All of these have the same implementation as #module_body,
     # so we just need to ensure that they are defined
-    [:module, :class, :defs, :def].each do |sym|
+    [:module, :class, :defs, :def, :while].each do |sym|
       it { should respond_to("#{sym}_body".to_sym) }
     end
   end

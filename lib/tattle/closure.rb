@@ -22,7 +22,9 @@ module Tattle
       elsif ast.begin?
         ast.children.each { |child| current_closure.merge Closure.compute(child, current_closure) }
       elsif ast.if?
-        ast.if_branches.each { |branch| current_closure.merge Closure.compute(branch, current_closure) }
+        ([ast.if_condition] + ast.if_branches).each { |branch| current_closure.merge Closure.compute(branch, current_closure) }
+      elsif ast.while?
+        [ast.while_condition, ast.while_body].each { |node| current_closure.merge Closure.compute(node, current_closure) }
       end 
       current_closure
     end

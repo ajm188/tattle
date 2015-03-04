@@ -3,7 +3,7 @@ require 'parser'
 module Parser
   module AST
     class Node
-      closures = [:module, :class, :defs, :def, :block]
+      closures = [:module, :class, :defs, :def, :block, :while]
       closures.each do |sym|
         define_method "#{sym}_body" do
           children.last
@@ -41,6 +41,10 @@ module Parser
 
       def hash_pairs
         children
+      end
+
+      def while_condition
+        children.first
       end
 
       def if_condition
