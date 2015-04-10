@@ -38,7 +38,7 @@ After checking out the repo, run `bin/setup` to install dependencies. Then, run 
 
 ## Contributing
 
-1. Fork it ( https://github.com/ajm188tattle/fork )
+1. Fork it ( https://github.com/ajm188/tattle/fork )
 2. Create your feature branch (`git checkout -b my-new-feature`)
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
